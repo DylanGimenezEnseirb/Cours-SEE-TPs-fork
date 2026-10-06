@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -58,18 +59,25 @@ void task_2_handler(void) {
 int main(void) {
     task_register("SensorTask", 100, 12, task_1_handler); // Runs 12 times
     task_register("LoggerTask", 500, 2, task_2_handler); // Runs 2 time
-
+    printf("\n");
     while (true) {
-        for (int i = 0; i<MAX_TASKS; i++)
+        for (int i = 0; i<task_count; i++)
         {
             for (int j = 0; j<tasks[i].max_runs; j++)
             {
+                if (!j)
+                    printf("\t%s executed.\n", tasks[i].name);
+
+                printf("Iteration : %d (MAX %d)\n", j, tasks[i].max_runs);
                 tasks[i].func();
                 tasks[i].last_run_ms = get_time_ms();
+                printf("Last run executed at %lums.\n", tasks[i].last_run_ms);
                 tasks[i].run_count++;
+                printf("\n");
             }
+            printf("\n");
         }
-        break;
+        exit(EXIT_SUCCESS);
     }
 
     return 0;
