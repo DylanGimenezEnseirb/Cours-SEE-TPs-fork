@@ -26,7 +26,7 @@ uint64_t get_time_ms(void) {
         .tv_nsec = 0,    
     };
 
-    clock_gettime(CLOCK_REALTIME, &timer);
+    clock_gettime(CLOCK_MONOTIC, &timer);
 
     return timer.tv_nsec*1000;
 }
@@ -56,29 +56,44 @@ void task_2_handler(void) {
     printf("-> Task 2 logic executed\n");
 }
 
+int areAllTasksOver (char *taskBuffer, int size)
+{   
+    for (int i = 0; i<size; i++)
+    {
+        if (taskBuffer+i == 0)
+            return 0;
+    }    
+    return 1;
+}
 int main(void) {
     task_register("SensorTask", 100, 12, task_1_handler); // Runs 12 times
     task_register("LoggerTask", 500, 2, task_2_handler); // Runs 2 time
     printf("\n");
+
+    char isTaskOver[MAX_TASKS] = {};
+
     while (true) {
         for (int i = 0; i<task_count; i++)
         {
-            for (int j = 0; j<tasks[i].max_runs; j++)
-            {
-                if (!j)
-                    printf("\t%s executed.\n", tasks[i].name);
+            if (isTaskOver[i])
+                continue;
 
-                printf("Iteration : %d (MAX %d)\n", j, tasks[i].max_runs);
-                tasks[i].func();
-                tasks[i].last_run_ms = get_time_ms();
-                printf("Last run executed at %lums.\n", tasks[i].last_run_ms);
-                tasks[i].run_count++;
-                printf("\n");
-            }
+            printf("\t%s executed.\n", tasks[i].name);
+            printf("Last run executed at %lums.\n", tasks[i].last_run_ms);
+            printf("Iteration : %d (MAX %d)\n", tasks[i].run_count++, tasks[i].max_runs);
+
+            tasks[i].func();
+            tasks[i].last_run_ms = get_time_ms();
             printf("\n");
-        }
-        exit(EXIT_SUCCESS);
-    }
 
+            if (tasks[i].run_count == tasks[i].max_count)
+            {
+                isTaskOver[i]=1;
+            }
+        }
+            printf("\n");
+        if (areAllTasksOver(isTaskOver, task_count))
+            break;
+    }
     return 0;
 }
